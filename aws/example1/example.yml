@@ -1,0 +1,398 @@
+Resources:
+  MyVpcF9F0CA6F:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: MyVpc
+    Metadata:
+      aws:cdk:path: Example1Stack/MyVpc/Resource
+  MyVpcmainSubnet1SubnetE6979C7F:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      AvailabilityZone: eu-north-1a
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: main
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: Example1Stack/MyVpc/mainSubnet1
+    Metadata:
+      aws:cdk:path: Example1Stack/MyVpc/mainSubnet1/Subnet
+  MyVpcmainSubnet1RouteTable6A7A5D29:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      Tags:
+        - Key: Name
+          Value: Example1Stack/MyVpc/mainSubnet1
+    Metadata:
+      aws:cdk:path: Example1Stack/MyVpc/mainSubnet1/RouteTable
+  MyVpcmainSubnet1RouteTableAssociation05E0716F:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: MyVpcmainSubnet1RouteTable6A7A5D29
+      SubnetId:
+        Ref: MyVpcmainSubnet1SubnetE6979C7F
+    Metadata:
+      aws:cdk:path: Example1Stack/MyVpc/mainSubnet1/RouteTableAssociation
+  MyVpcmainSubnet1DefaultRoute3208C130:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: MyVpcmainSubnet1RouteTable6A7A5D29
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: MyVpcIGW5C4A4F63
+    DependsOn:
+      - MyVpcVPCGW488ACE0D
+    Metadata:
+      aws:cdk:path: Example1Stack/MyVpc/mainSubnet1/DefaultRoute
+  MyVpcIGW5C4A4F63:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: MyVpc
+    Metadata:
+      aws:cdk:path: Example1Stack/MyVpc/IGW
+  MyVpcVPCGW488ACE0D:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      InternetGatewayId:
+        Ref: MyVpcIGW5C4A4F63
+    Metadata:
+      aws:cdk:path: Example1Stack/MyVpc/VPCGW
+  MySecurityGroupAC8D442C:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: My Security Group
+      GroupName: My Security Group
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+        - CidrIpv6: ::/0
+          Description: Allow all outbound ipv6 traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 92.35.130.126/24
+          Description: SSH Ingress
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+        - CidrIp: 0.0.0.0/0
+          Description: HTTP Ingress
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          Description: HTTPS Ingress
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+    Metadata:
+      aws:cdk:path: Example1Stack/MySecurityGroup/Resource
+  MyInstanceInstanceRole1C4D4747:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+        Version: "2012-10-17"
+      Tags:
+        - Key: Name
+          Value: MyInstance
+    Metadata:
+      aws:cdk:path: Example1Stack/MyInstance/InstanceRole/Resource
+  MyInstanceInstanceRoleDefaultPolicy93DCF05D:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - cloudformation:DescribeStackResource
+              - cloudformation:SignalResource
+            Effect: Allow
+            Resource:
+              Ref: AWS::StackId
+        Version: "2012-10-17"
+      PolicyName: MyInstanceInstanceRoleDefaultPolicy93DCF05D
+      Roles:
+        - Ref: MyInstanceInstanceRole1C4D4747
+    Metadata:
+      aws:cdk:path: Example1Stack/MyInstance/InstanceRole/DefaultPolicy/Resource
+  MyInstanceInstanceProfile2784C631:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: MyInstanceInstanceRole1C4D4747
+    Metadata:
+      aws:cdk:path: Example1Stack/MyInstance/InstanceProfile
+  MyInstance00EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: eu-north-1a
+      IamInstanceProfile:
+        Ref: MyInstanceInstanceProfile2784C631
+      ImageId:
+        Fn::FindInMap:
+          - MyInstanceAmiMap2A338A35
+          - Ref: AWS::Region
+          - ami
+      InstanceType: t4g.nano
+      KeyName: MyKeyPair
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - MySecurityGroupAC8D442C
+            - GroupId
+      SubnetId:
+        Ref: MyVpcmainSubnet1SubnetE6979C7F
+      Tags:
+        - Key: Name
+          Value: MyInstance
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - ""
+            - - |-
+                #!/bin/bash
+                sudo apt-get update -y
+                sudo apt-get -y install python3-pip
+                mkdir -p /opt/aws/
+                sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+                sudo ln -s /usr/local/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+                /usr/local/bin/cfn-init -v --stack Example1Stack --resource MyInstance00EC2Instance --configsets full_install --region 
+              - Ref: AWS::Region
+              - |-
+                
+                /usr/local/bin/cfn-signal -e $? --stack Example1Stack --resource MyInstance00EC2Instance --region 
+              - Ref: AWS::Region
+              - |-
+                
+                # fingerprint: bf5fd9db12e240b0
+                (
+                  set +e
+                  /opt/aws/bin/cfn-init -v --region 
+              - Ref: AWS::Region
+              - " --stack "
+              - Ref: AWS::StackName
+              - |-2
+                 --resource MyInstance00EC2Instance -c default
+                  /opt/aws/bin/cfn-signal -e $? --region 
+              - Ref: AWS::Region
+              - " --stack "
+              - Ref: AWS::StackName
+              - |-2
+                 --resource MyInstance00EC2Instance
+                  cat /var/log/cfn-init.log >&2
+                )
+    DependsOn:
+      - MyInstanceInstanceRoleDefaultPolicy93DCF05D
+      - MyInstanceInstanceRole1C4D4747
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT5M
+    Metadata:
+      aws:cdk:path: Example1Stack/MyInstance/Resource
+      AWS::CloudFormation::Init:
+        configSets:
+          full_install:
+            - install_and_enable_cfn_hup
+            - install-nginx
+        install_and_enable_cfn_hup:
+          files:
+            /etc/cfn/cfn-hup.conf:
+              content:
+                Fn::Join:
+                  - "\n"
+                  - - |-
+                      [main]
+                      stack=Example1Stack
+                    - Fn::Join:
+                        - ""
+                        - - region=
+                          - Ref: AWS::Region
+              encoding: plain
+              mode: "000400"
+              owner: root
+              group: root
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content:
+                Fn::Join:
+                  - "\n"
+                  - - |-
+                      [cfn-auto-reloader-hook]
+                      triggers=post.update
+                      path=Resources.MyInstance00EC2Instance.Metadata.AWS::CloudFormation::Init
+                    - Fn::Join:
+                        - ""
+                        - - "action=/usr/local/bin/cfn-init -v --stack ${id} --resource MyInstance00EC2Instance --configsets InstallAndRun --region "
+                          - Ref: AWS::Region
+                    - runas=root
+              encoding: plain
+              mode: "000400"
+              owner: root
+              group: root
+            /lib/systemd/system/cfn-hup.service:
+              content: "
+
+                \            [Unit]
+
+                \            Description=cfn-hup daemon
+
+                \            [Service]
+
+                \            Type=simple
+
+                \            ExecStart=/usr/local/bin/cfn-hup
+
+                \            Restart=always
+
+                \            [Install]
+
+                \            WantedBy=multi-user.target
+
+                \          "
+              encoding: plain
+              mode: "000400"
+              owner: root
+              group: root
+          commands:
+            01enable_cfn_hup:
+              command: systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: systemctl start cfn-hup.service
+        install-nginx:
+          packages:
+            apt:
+              nginx: []
+          commands:
+            "000":
+              command: echo hello world
+          services:
+            systemd:
+              nginx:
+                enabled: true
+                ensureRunning: true
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/1WQzW7CMBCEn6V3xwWqqr2iHBCHSlFSca0cZ2kXkt3IXhehKO9e5wdCTzv+NJqd9Ua/vejVk7n4xFbnpMZSd4UYe1YRfXVgN7o7tFalRzpkqcpCWaMtQkkgA1tUzkHg05Q1LHxhW+/ZohFkupsHsScBF507I3Ax13nN/NpKLPLTAIkqwAaHct05Du244B/YkxdDdo6cdK/QNLrLeWo0zoxj+3HLom7+zPERa+h7lYPn4Ka0D9O2SN9jwgNOmSocrukVcQX65J9/1+96/Rr/8uQRExdIsAGdT/MPxaXktGcBAAA=
+    Metadata:
+      aws:cdk:path: Example1Stack/CDKMetadata/Default
+    Condition: CDKMetadataAvailable
+Mappings:
+  MyInstanceAmiMap2A338A35:
+    eu-north-1:
+      ami: ami-0bf31a929ffb5e8d7
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - af-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-northwest-1
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - sa-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-2
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-2
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                  - "4"
+                  - "5"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+

@@ -1,0 +1,10 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  LightsailInstance:
+    Type: AWS::Lightsail::Instance
+    Properties:
+      AvailabilityZone: eu-north-1
+      BlueprintId: ubuntu_20_04
+      BundleId: nano_2_0
+      InstanceName: MyLightsailInstance
