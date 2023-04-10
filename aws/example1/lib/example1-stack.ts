@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { CloudFormationInit, InitCommand, InitFile, InitPackage, InitService, InstanceClass, InstanceSize, InstanceType, MachineImage, ServiceManager } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
+import { WebsiteSecurityGroup } from './website-security-group';
 
 const REGION = 'eu-north-1'
 const AVAILABILITY_ZONE = 'eu-north-1a'
@@ -28,17 +29,7 @@ export class Example1Stack extends cdk.Stack {
      vpcName: "MyVpc"
     });
 
-    const sg = new cdk.aws_ec2.SecurityGroup(this, "MySecurityGroup", {
-      vpc: myVpc,
-      allowAllIpv6Outbound: true,
-      allowAllOutbound: true,
-      description: "My Security Group",
-      securityGroupName: "My Security Group",
-    });
-    sg.addIngressRule(cdk.aws_ec2.Peer.ipv4("92.35.130.126/24"), cdk.aws_ec2.Port.tcp(22), "SSH Ingress")
-    sg.addIngressRule(cdk.aws_ec2.Peer.anyIpv4(), cdk.aws_ec2.Port.tcp(80), "HTTP Ingress")
-    sg.addIngressRule(cdk.aws_ec2.Peer.anyIpv4(), cdk.aws_ec2.Port.tcp(443), "HTTPS Ingress")
-
+    const sg = new WebsiteSecurityGroup(this, "MySecurityGroup", { vpc: myVpc })
 
     /*
     InitPackage.apt("nginx"),
@@ -125,7 +116,7 @@ export class Example1Stack extends cdk.Stack {
       instanceName: "MyInstance",
       keyName: "MyKeyPair",
       // privateIpAddress - if you need the same ip within the subnet to reach it every time.
-      securityGroup: sg,
+      securityGroup: sg.securityGroup,
       // ssmSessionPermissions - also need to install and SSM agent if you want to do this.
       vpcSubnets: {
         subnetGroupName: 'main',
