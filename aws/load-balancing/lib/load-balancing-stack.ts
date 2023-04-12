@@ -1,7 +1,6 @@
 import { aws_ec2 as ec2, aws_apigateway as apigw, aws_elasticloadbalancingv2 as elbv2, aws_autoscaling as as, Stack, StackProps, Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { WebsiteSecurityGroup } from './website-security-group';
-import { Ubuntu2004Ec2Instance } from './ubuntu-2004-ec2-instance';
 import { LoadBalancerSecurityGroup } from './load-balancer-security-group';
 import { readFileSync } from 'fs'
 import * as YAML from 'yaml'
@@ -116,6 +115,9 @@ export class LoadBalancingStack extends Stack {
 
     })
     const _ = (lb.node.defaultChild as elbv2.CfnLoadBalancer).overrideLogicalId("MyApplicationLoadBalancer")
+
+    // Not needed, already implicit
+    // websiteSecurityGroup.securityGroup.connections.allowFrom(lb, ec2.Port.tcp(80))
 
     const listener = new elbv2.ApplicationListener(this, "ApplicationListener", {
       loadBalancer: lb,

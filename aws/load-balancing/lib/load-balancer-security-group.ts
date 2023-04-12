@@ -21,7 +21,5 @@ export class LoadBalancerSecurityGroup extends Construct {
             description: id,
             securityGroupName: id,
           });
-        this.securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), "HTTP Ingress")
-        this.securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), "HTTPS Ingress")
     }
 }

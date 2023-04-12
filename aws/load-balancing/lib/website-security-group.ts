@@ -18,12 +18,10 @@ export class WebsiteSecurityGroup extends Construct {
             vpc: props.vpc,
             allowAllIpv6Outbound: true,
             allowAllOutbound: true,
-            description: "My Security Group 2",
-            securityGroupName: "My Security Group 2",
+            description: "My Security Group 3",
+            securityGroupName: "My Security Group 3",
           });
         
         this.securityGroup.addIngressRule(ec2.Peer.ipv4(personalIp), ec2.Port.tcp(22), "SSH Ingress")
-        this.securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), "HTTP Ingress")
-        this.securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), "HTTPS Ingress")
     }
 }

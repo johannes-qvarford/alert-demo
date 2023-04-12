@@ -271,8 +271,8 @@ Resources:
   MySecurityGroup7983747F:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: My Security Group 2
-      GroupName: My Security Group 2
+      GroupDescription: My Security Group 3
+      GroupName: My Security Group 3
       SecurityGroupEgress:
         - CidrIp: 0.0.0.0/0
           Description: Allow all outbound traffic by default
@@ -286,16 +286,6 @@ Resources:
           FromPort: 22
           IpProtocol: tcp
           ToPort: 22
-        - CidrIp: 0.0.0.0/0
-          Description: HTTP Ingress
-          FromPort: 80
-          IpProtocol: tcp
-          ToPort: 80
-        - CidrIp: 0.0.0.0/0
-          Description: HTTPS Ingress
-          FromPort: 443
-          IpProtocol: tcp
-          ToPort: 443
       VpcId:
         Ref: MyVpcF9F0CA6F
     Metadata:
@@ -420,15 +410,10 @@ Resources:
           IpProtocol: "-1"
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
-          Description: HTTP Ingress
+          Description: Allow from anyone on port 80
           FromPort: 80
           IpProtocol: tcp
           ToPort: 80
-        - CidrIp: 0.0.0.0/0
-          Description: HTTPS Ingress
-          FromPort: 443
-          IpProtocol: tcp
-          ToPort: 443
       VpcId:
         Ref: MyVpcF9F0CA6F
     Metadata:
