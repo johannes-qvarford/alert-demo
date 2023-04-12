@@ -135,6 +135,10 @@ export class LoadBalancingStack extends Stack {
     // HttpApi allows you to wrap individual operations, and forward them to a lambda or http endpoint.
     // you are also allowed to secure endpoints in HttpApi, but I guess the point is that you don't get automatic validation,
     // transformation etc. like with RestApi?
+
+    // We need the ApplicationLoadBalancer to be public, because RestApi can only talk to private NetworkLoadBalancers.
+    // The private NetworkLoadBalancer can then talk to the the private ApplicationLoadBalancer.
+
     const restApi = new apigw.SpecRestApi(this, "RestApi", {
       //minCompressionSize
       retainDeployments: true,
