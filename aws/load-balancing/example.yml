@@ -1,0 +1,773 @@
+Resources:
+  MyVpcF9F0CA6F:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: MyVpc
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/Resource
+  MyVpcpublicSubnet1Subnet75CA916A:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      AvailabilityZone: eu-north-1a
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/publicSubnet1
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet1/Subnet
+  MyVpcpublicSubnet1RouteTable2E0CCC3A:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      Tags:
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/publicSubnet1
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet1/RouteTable
+  MyVpcpublicSubnet1RouteTableAssociation6D520F26:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: MyVpcpublicSubnet1RouteTable2E0CCC3A
+      SubnetId:
+        Ref: MyVpcpublicSubnet1Subnet75CA916A
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet1/RouteTableAssociation
+  MyVpcpublicSubnet1DefaultRoute1C88571A:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: MyVpcpublicSubnet1RouteTable2E0CCC3A
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: MyVpcIGW5C4A4F63
+    DependsOn:
+      - MyVpcVPCGW488ACE0D
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet1/DefaultRoute
+  MyVpcpublicSubnet1EIPA11A8EA3:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/publicSubnet1
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet1/EIP
+  MyVpcpublicSubnet1NATGateway1839A981:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId:
+        Ref: MyVpcpublicSubnet1Subnet75CA916A
+      AllocationId:
+        Fn::GetAtt:
+          - MyVpcpublicSubnet1EIPA11A8EA3
+          - AllocationId
+      Tags:
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/publicSubnet1
+    DependsOn:
+      - MyVpcpublicSubnet1DefaultRoute1C88571A
+      - MyVpcpublicSubnet1RouteTableAssociation6D520F26
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet1/NATGateway
+  MyVpcpublicSubnet2Subnet87EBD23B:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      AvailabilityZone: eu-north-1b
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/publicSubnet2
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet2/Subnet
+  MyVpcpublicSubnet2RouteTable18FD0DBF:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      Tags:
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/publicSubnet2
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet2/RouteTable
+  MyVpcpublicSubnet2RouteTableAssociation2BD1A73B:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: MyVpcpublicSubnet2RouteTable18FD0DBF
+      SubnetId:
+        Ref: MyVpcpublicSubnet2Subnet87EBD23B
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet2/RouteTableAssociation
+  MyVpcpublicSubnet2DefaultRoute203C8627:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: MyVpcpublicSubnet2RouteTable18FD0DBF
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: MyVpcIGW5C4A4F63
+    DependsOn:
+      - MyVpcVPCGW488ACE0D
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet2/DefaultRoute
+  MyVpcpublicSubnet2EIP2A8D5F89:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/publicSubnet2
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet2/EIP
+  MyVpcpublicSubnet2NATGateway63811630:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId:
+        Ref: MyVpcpublicSubnet2Subnet87EBD23B
+      AllocationId:
+        Fn::GetAtt:
+          - MyVpcpublicSubnet2EIP2A8D5F89
+          - AllocationId
+      Tags:
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/publicSubnet2
+    DependsOn:
+      - MyVpcpublicSubnet2DefaultRoute203C8627
+      - MyVpcpublicSubnet2RouteTableAssociation2BD1A73B
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/publicSubnet2/NATGateway
+  MyVpcprivateSubnet1Subnet3E5A1110:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      AvailabilityZone: eu-north-1a
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: private
+        - Key: aws-cdk:subnet-type
+          Value: Private
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/privateSubnet1
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/privateSubnet1/Subnet
+  MyVpcprivateSubnet1RouteTableCBD023BE:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      Tags:
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/privateSubnet1
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/privateSubnet1/RouteTable
+  MyVpcprivateSubnet1RouteTableAssociation260F1146:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: MyVpcprivateSubnet1RouteTableCBD023BE
+      SubnetId:
+        Ref: MyVpcprivateSubnet1Subnet3E5A1110
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/privateSubnet1/RouteTableAssociation
+  MyVpcprivateSubnet1DefaultRouteB04056EC:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: MyVpcprivateSubnet1RouteTableCBD023BE
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: MyVpcpublicSubnet1NATGateway1839A981
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/privateSubnet1/DefaultRoute
+  MyVpcprivateSubnet2Subnet372894AA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      AvailabilityZone: eu-north-1b
+      CidrBlock: 10.0.3.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: private
+        - Key: aws-cdk:subnet-type
+          Value: Private
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/privateSubnet2
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/privateSubnet2/Subnet
+  MyVpcprivateSubnet2RouteTableB9EC50DF:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      Tags:
+        - Key: Name
+          Value: LoadBalancingStack/MyVpc/privateSubnet2
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/privateSubnet2/RouteTable
+  MyVpcprivateSubnet2RouteTableAssociationBC4A677C:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: MyVpcprivateSubnet2RouteTableB9EC50DF
+      SubnetId:
+        Ref: MyVpcprivateSubnet2Subnet372894AA
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/privateSubnet2/RouteTableAssociation
+  MyVpcprivateSubnet2DefaultRoute85C85F0F:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: MyVpcprivateSubnet2RouteTableB9EC50DF
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: MyVpcpublicSubnet2NATGateway63811630
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/privateSubnet2/DefaultRoute
+  MyVpcIGW5C4A4F63:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: MyVpc
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/IGW
+  MyVpcVPCGW488ACE0D:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+      InternetGatewayId:
+        Ref: MyVpcIGW5C4A4F63
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MyVpc/VPCGW
+  MySecurityGroup7983747F:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: My Security Group 2
+      GroupName: My Security Group 2
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+        - CidrIpv6: ::/0
+          Description: Allow all outbound ipv6 traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 92.35.130.126/24
+          Description: SSH Ingress
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MySecurityGroup/MySecurityGroup/Resource
+  MySecurityGroupfromLoadBalancingStackApplicationLoadBalancerSecurityGroup91007E6280343270DA:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      Description: Load balancer to target
+      FromPort: 80
+      GroupId:
+        Fn::GetAtt:
+          - MySecurityGroup7983747F
+          - GroupId
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - ApplicationLoadBalancerSecurityGroupD1E97C66
+          - GroupId
+      ToPort: 80
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/MySecurityGroup/MySecurityGroup/from LoadBalancingStackApplicationLoadBalancerSecurityGroup91007E62:80
+  ApplicationTargetGroup39BF8D27:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: ApplicationTargetGroup
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: "false"
+      TargetType: instance
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/ApplicationTargetGroup/Resource
+  AutoScalingGroupInstanceRoleDC70D128:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+        Version: "2012-10-17"
+      Tags:
+        - Key: Name
+          Value: LoadBalancingStack/AutoScalingGroup
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/AutoScalingGroup/InstanceRole/Resource
+  AutoScalingGroupInstanceProfile342FAC7C:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: AutoScalingGroupInstanceRoleDC70D128
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/AutoScalingGroup/InstanceProfile
+  AutoScalingGroupLaunchConfigDEEB160C:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId:
+        Fn::FindInMap:
+          - AutoScalingGroupAmiMap55901487
+          - Ref: AWS::Region
+          - ami
+      InstanceType: t4g.nano
+      AssociatePublicIpAddress: true
+      IamInstanceProfile:
+        Ref: AutoScalingGroupInstanceProfile342FAC7C
+      KeyName: MyKeyPair
+      SecurityGroups:
+        - Fn::GetAtt:
+            - MySecurityGroup7983747F
+            - GroupId
+      UserData:
+        Fn::Base64: |-
+          #!/bin/bash
+          sudo apt-get update -y
+          sudo apt-get install nginx
+          sudo systemctl enable nginx
+          sudo systemctl start nginx
+    DependsOn:
+      - AutoScalingGroupInstanceRoleDC70D128
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/AutoScalingGroup/LaunchConfig
+  AutoScalingGroupASG804C35BE:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MaxSize: "3"
+      MinSize: "2"
+      AutoScalingGroupName: AutoScalingGroup
+      CapacityRebalance: true
+      HealthCheckGracePeriod: 60
+      HealthCheckType: ELB
+      LaunchConfigurationName:
+        Ref: AutoScalingGroupLaunchConfigDEEB160C
+      Tags:
+        - Key: Name
+          PropagateAtLaunch: true
+          Value: LoadBalancingStack/AutoScalingGroup
+      TargetGroupARNs:
+        - Ref: ApplicationTargetGroup39BF8D27
+      VPCZoneIdentifier:
+        - Ref: MyVpcpublicSubnet1Subnet75CA916A
+        - Ref: MyVpcpublicSubnet2Subnet87EBD23B
+    UpdatePolicy:
+      AutoScalingScheduledAction:
+        IgnoreUnmodifiedGroupSizeProperties: true
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/AutoScalingGroup/ASG
+  ApplicationLoadBalancerSecurityGroupD1E97C66:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ApplicationLoadBalancerSecurityGroup
+      GroupName: ApplicationLoadBalancerSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+        - CidrIpv6: ::/0
+          Description: Allow all outbound ipv6 traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: HTTP Ingress
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          Description: HTTPS Ingress
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      VpcId:
+        Ref: MyVpcF9F0CA6F
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/ApplicationLoadBalancerSecurityGroup/ApplicationLoadBalancerSecurityGroup/Resource
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: "false"
+      Name: ApplicationLoadBalancer
+      Scheme: internal
+      SecurityGroups:
+        - Fn::GetAtt:
+            - ApplicationLoadBalancerSecurityGroupD1E97C66
+            - GroupId
+      Subnets:
+        - Ref: MyVpcprivateSubnet1Subnet3E5A1110
+        - Ref: MyVpcprivateSubnet2Subnet372894AA
+      Type: application
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/ApplicationLoadBalancer/Resource
+  ApplicationListener62E539D0:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn:
+            Ref: ApplicationTargetGroup39BF8D27
+          Type: forward
+      LoadBalancerArn:
+        Ref: ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/ApplicationListener/Resource
+  RestApi0C43BF4B:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Body:
+        openapi: 3.0.1
+        info:
+          version: 1.0.0
+          title: PetStore
+          description: Nginx API
+        servers:
+          - url: /
+        paths:
+          /:
+            get:
+              tags:
+                - pets
+              description: Nginx home page
+              responses:
+                "200":
+                  description: Successful operation
+                  headers:
+                    Content-Type:
+                      description: Media type of request
+                      schema:
+                        type: string
+                  content: {}
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: "200"
+                uri:
+                  Fn::Sub: http://${ApplicationLoadBalancer.DNSName}
+                passthroughBehavior: when_no_match
+                httpMethod: GET
+                type: http
+          /pets:
+            get:
+              tags:
+                - pets
+              summary: List all pets
+              parameters:
+                - name: type
+                  in: query
+                  description: The type of pet to retrieve
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  description: Page number of results to return.
+                  schema:
+                    type: string
+              responses:
+                "200":
+                  description: Successful operation
+                  headers:
+                    Access-Control-Allow-Origin:
+                      description: URI that may access the resource
+                      schema:
+                        type: string
+                  content:
+                    application/json:
+                      schema:
+                        $ref: "#/components/schemas/Pets"
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                requestParameters:
+                  integration.request.querystring.page: method.request.querystring.page
+                  integration.request.querystring.type: method.request.querystring.type
+                uri: http://petstore.execute-api.eu-north-1.amazonaws.com/petstore/pets
+                passthroughBehavior: when_no_match
+                httpMethod: GET
+                type: http
+        components:
+          schemas:
+            Pets:
+              type: array
+              items:
+                $ref: "#/components/schemas/Pet"
+            Empty:
+              type: object
+            NewPetResponse:
+              type: object
+              properties:
+                pet:
+                  $ref: "#/components/schemas/Pet"
+                message:
+                  type: string
+            Pet:
+              type: object
+              properties:
+                id:
+                  type: integer
+                type:
+                  type: string
+                price:
+                  type: number
+        x-amazon-apigateway-documentation:
+          version: v2.1
+          createdDate: "2016-11-17T07:03:59Z"
+          documentationParts:
+            - location:
+                type: API
+              properties:
+                info:
+                  description: Your first API with Amazon API Gateway. This is a sample API that integrates via HTTP with our demo Pet Store endpoints
+            - location:
+                type: METHOD
+                method: GET
+              properties:
+                tags:
+                  - pets
+                description: Nginx home page
+            - location:
+                type: METHOD
+                path: /pets
+                method: GET
+              properties:
+                tags:
+                  - pets
+                summary: List all pets
+            - location:
+                type: QUERY_PARAMETER
+                path: /pets
+                method: GET
+                name: page
+              properties:
+                description: Page number of results to return.
+            - location:
+                type: QUERY_PARAMETER
+                path: /pets
+                method: GET
+                name: type
+              properties:
+                description: The type of pet to retrieve
+            - location:
+                type: RESPONSE
+                method: "*"
+                statusCode: "200"
+              properties:
+                description: Successful operation
+            - location:
+                type: RESPONSE_HEADER
+                method: OPTIONS
+                statusCode: "200"
+                name: Access-Control-Allow-Headers
+              properties:
+                description: Used in response to a preflight request to indicate which HTTP headers can be used when making the request.
+            - location:
+                type: RESPONSE_HEADER
+                method: OPTIONS
+                statusCode: "200"
+                name: Access-Control-Allow-Methods
+              properties:
+                description: Method or methods allowed when accessing the resource
+            - location:
+                type: RESPONSE_HEADER
+                method: "*"
+                statusCode: "200"
+                name: Access-Control-Allow-Origin
+              properties:
+                description: URI that may access the resource
+            - location:
+                type: RESPONSE_HEADER
+                method: GET
+                statusCode: "200"
+                name: Content-Type
+              properties:
+                description: Media type of request
+      Name: RestApi
+    DependsOn:
+      - ApplicationLoadBalancer
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/RestApi/Resource
+  RestApiDeployment180EC5035b8f9da277a689eef43921e3574b03c8:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: RestApi0C43BF4B
+      Description: Automatically created by the RestApi construct
+    DependsOn:
+      - ApplicationLoadBalancer
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/RestApi/Deployment/Resource
+  RestApiDeploymentStageprod3855DE66:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId:
+        Ref: RestApi0C43BF4B
+      DeploymentId:
+        Ref: RestApiDeployment180EC5035b8f9da277a689eef43921e3574b03c8
+      StageName: prod
+    DependsOn:
+      - ApplicationLoadBalancer
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/RestApi/DeploymentStage.prod/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/31STU/DMAz9Ldyz8iUE1zHQNImPakNckZt5xSNLosQZmqb+d5y26wYHTn5+erGf7VwVt9fFxRl8x5Fefo0MVcV+waC/lFAfe9RXxf7dazVZ2fdyospUGdKLVFnkzB3R3CXGN6gMHvkjN47RaQImZwdxBo+zMocX4CkwfsNOlYG2Ao+FZ5YxCD4IOid9Nmbx+rlBy2qBOgXi3TS45FsP/xIzWweMsVFoIDJp42BZgQGrydZbmXrsvYzaWn6DUIuBQ53T9ET1JBXu2woYsuxXfqqjyGh7TY8bBYld1GCku/SWZNElQ9cnSFZ/TpxdUZ3CsMq/0kYRbIr93HWHOMSZjZydlMGtyKD081R3O5SDe9RzjDz21L7poUSXgsZ7iKge0Bu3azctkpNMfkvd3TyDphmeZe4ZvBdnGb4m9on7+oNA5llSnqVR1i2xWMfz7eVdcXkjn3IdiUYhWaYNFvMu/gCPbTCIsAIAAA==
+    Metadata:
+      aws:cdk:path: LoadBalancingStack/CDKMetadata/Default
+    Condition: CDKMetadataAvailable
+Mappings:
+  AutoScalingGroupAmiMap55901487:
+    eu-north-1:
+      ami: ami-0bf31a929ffb5e8d7
+Outputs:
+  RestApiEndpoint0551178A:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: RestApi0C43BF4B
+          - .execute-api.
+          - Ref: AWS::Region
+          - "."
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: RestApiDeploymentStageprod3855DE66
+          - /
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - af-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-northwest-1
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - sa-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-2
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-2
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                  - "4"
+                  - "5"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+

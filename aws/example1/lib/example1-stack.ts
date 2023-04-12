@@ -32,8 +32,6 @@ export class Example1Stack extends cdk.Stack {
 
     const sg = new WebsiteSecurityGroup(this, "MySecurityGroup", { vpc: myVpc })
 
-    // /usr/local/bin/cfn-init -v --stack Example1Stack --resource MyInstance --configsets full_install --region eu-north-1
-
     const instance = new Ubuntu2004Ec2Instance(this, "MyInstance", {
       instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.NANO),
       vpc: myVpc,

@@ -1,0 +1,171 @@
+openapi: 3.0.1
+info:
+  version: 1.0.0
+  title: PetStore
+  description: Nginx API
+servers:
+- url: /
+paths:
+  /:
+    get:
+      tags:
+      - pets
+      description: Nginx home page
+      responses:
+        200:
+          description: Successful operation
+          headers:
+            Content-Type:
+              description: Media type of request
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        uri:
+          Fn::Sub: 'http://${ApplicationLoadBalancer.DNSName}'
+        passthroughBehavior: when_no_match
+        httpMethod: GET
+        type: http
+  /pets:
+    get:
+      tags:
+      - pets
+      summary: List all pets
+      parameters:
+      - name: type
+        in: query
+        description: The type of pet to retrieve
+        schema:
+          type: string
+      - name: page
+        in: query
+        description: Page number of results to return.
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pets'
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+        requestParameters:
+          integration.request.querystring.page: method.request.querystring.page
+          integration.request.querystring.type: method.request.querystring.type
+        uri: http://petstore.execute-api.eu-north-1.amazonaws.com/petstore/pets
+        passthroughBehavior: when_no_match
+        httpMethod: GET
+        type: http
+components:
+  schemas:
+    Pets:
+      type: array
+      items:
+        $ref: '#/components/schemas/Pet'
+    Empty:
+      type: object
+    NewPetResponse:
+      type: object
+      properties:
+        pet:
+          $ref: '#/components/schemas/Pet'
+        message:
+          type: string
+    Pet:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        price:
+          type: number
+
+x-amazon-apigateway-documentation:
+  version: v2.1
+  createdDate: 2016-11-17T07:03:59Z
+  documentationParts:
+  - location:
+      type: API
+    properties:
+      info:
+        description: Your first API with Amazon API Gateway. This is a sample API
+          that integrates via HTTP with our demo Pet Store endpoints
+  - location:
+      type: METHOD
+      method: GET
+    properties:
+      tags:
+      - pets
+      description: Nginx home page
+  - location:
+      type: METHOD
+      path: /pets
+      method: GET
+    properties:
+      tags:
+      - pets
+      summary: List all pets
+  - location:
+      type: QUERY_PARAMETER
+      path: /pets
+      method: GET
+      name: page
+    properties:
+      description: Page number of results to return.
+  - location:
+      type: QUERY_PARAMETER
+      path: /pets
+      method: GET
+      name: type
+    properties:
+      description: The type of pet to retrieve
+  - location:
+      type: RESPONSE
+      method: '*'
+      statusCode: "200"
+    properties:
+      description: Successful operation
+  - location:
+      type: RESPONSE_HEADER
+      method: OPTIONS
+      statusCode: "200"
+      name: Access-Control-Allow-Headers
+    properties:
+      description: Used in response to a preflight request to indicate which HTTP
+        headers can be used when making the request.
+  - location:
+      type: RESPONSE_HEADER
+      method: OPTIONS
+      statusCode: "200"
+      name: Access-Control-Allow-Methods
+    properties:
+      description: Method or methods allowed when accessing the resource
+  - location:
+      type: RESPONSE_HEADER
+      method: '*'
+      statusCode: "200"
+      name: Access-Control-Allow-Origin
+    properties:
+      description: URI that may access the resource
+  - location:
+      type: RESPONSE_HEADER
+      method: GET
+      statusCode: "200"
+      name: Content-Type
+    properties:
+      description: Media type of request
