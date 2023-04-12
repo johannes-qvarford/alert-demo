@@ -14,14 +14,19 @@ paths:
       responses:
         200:
           description: Successful operation
-          headers:
-            Content-Type:
-              description: Media type of request
+          content:
+            text/html:
+            # Needs to be an explicit Schema reference, inline doesn't work
               schema:
-                type: string
-          content: {}
+                $ref: "#/components/schemas/Empty"
       x-amazon-apigateway-integration:
         responses:
+          # Can be a regex: https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-swagger-extensions-integration-responses.html
+          200:
+            statusCode: "200"
+            # If you don't have this, aws will discard the text/html content type
+            responseTemplates:
+              "text/html" : "#set ($root=$input.path('$')) $root"
           default:
             statusCode: "200"
         uri:

@@ -129,6 +129,10 @@ export class LoadBalancingStack extends Stack {
     const openapiYaml = readFileSync("openapi.yml").toString('utf-8')
     const openapiJson = YAML.parse(openapiYaml)
 
+    // Useful if you need per-client usage keys
+    // HttpApi allows you to wrap individual operations, and forward them to a lambda or http endpoint.
+    // you are also allowed to secure endpoints in HttpApi, but I guess the point is that you don't get automatic validation,
+    // transformation etc. like with RestApi?
     const restApi = new apigw.SpecRestApi(this, "RestApi", {
       //minCompressionSize
       retainDeployments: true,

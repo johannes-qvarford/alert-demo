@@ -489,14 +489,16 @@ Resources:
               responses:
                 "200":
                   description: Successful operation
-                  headers:
-                    Content-Type:
-                      description: Media type of request
+                  content:
+                    text/html:
                       schema:
-                        type: string
-                  content: {}
+                        $ref: "#/components/schemas/Empty"
               x-amazon-apigateway-integration:
                 responses:
+                  "200":
+                    statusCode: "200"
+                    responseTemplates:
+                      text/html: "#set ($root=$input.path('$')) $root"
                   default:
                     statusCode: "200"
                 uri:
@@ -646,7 +648,7 @@ Resources:
       - MyApplicationLoadBalancer
     Metadata:
       aws:cdk:path: LoadBalancingStack/RestApi/Resource
-  RestApiDeployment180EC503b817b506455f08319586fa66460e72ac:
+  RestApiDeployment180EC5033308a57ae43b5437d8a2fadc618b7172:
     Type: AWS::ApiGateway::Deployment
     Properties:
       RestApiId:
@@ -664,7 +666,7 @@ Resources:
       RestApiId:
         Ref: RestApi0C43BF4B
       DeploymentId:
-        Ref: RestApiDeployment180EC503b817b506455f08319586fa66460e72ac
+        Ref: RestApiDeployment180EC5033308a57ae43b5437d8a2fadc618b7172
       StageName: prod
     DependsOn:
       - MyApplicationLoadBalancer
