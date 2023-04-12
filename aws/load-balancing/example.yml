@@ -286,6 +286,16 @@ Resources:
           FromPort: 22
           IpProtocol: tcp
           ToPort: 22
+        - CidrIp: 0.0.0.0/0
+          Description: HTTP Ingress
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          Description: HTTPS Ingress
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
       VpcId:
         Ref: MyVpcF9F0CA6F
     Metadata:
@@ -307,10 +317,10 @@ Resources:
       ToPort: 80
     Metadata:
       aws:cdk:path: LoadBalancingStack/MySecurityGroup/MySecurityGroup/from LoadBalancingStackApplicationLoadBalancerSecurityGroup91007E62:80
-  ApplicationTargetGroup39BF8D27:
+  MyApplicationTargetGroup494DF93A:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: ApplicationTargetGroup
+      Name: MyApplicationTargetGroup
       Port: 80
       Protocol: HTTP
       TargetGroupAttributes:
@@ -320,7 +330,7 @@ Resources:
       VpcId:
         Ref: MyVpcF9F0CA6F
     Metadata:
-      aws:cdk:path: LoadBalancingStack/ApplicationTargetGroup/Resource
+      aws:cdk:path: LoadBalancingStack/MyApplicationTargetGroup/Resource
   AutoScalingGroupInstanceRoleDC70D128:
     Type: AWS::IAM::Role
     Properties:
@@ -364,7 +374,7 @@ Resources:
         Fn::Base64: |-
           #!/bin/bash
           sudo apt-get update -y
-          sudo apt-get install nginx
+          sudo apt-get install -y nginx
           sudo systemctl enable nginx
           sudo systemctl start nginx
     DependsOn:
@@ -387,7 +397,7 @@ Resources:
           PropagateAtLaunch: true
           Value: LoadBalancingStack/AutoScalingGroup
       TargetGroupARNs:
-        - Ref: ApplicationTargetGroup39BF8D27
+        - Ref: MyApplicationTargetGroup494DF93A
       VPCZoneIdentifier:
         - Ref: MyVpcpublicSubnet1Subnet75CA916A
         - Ref: MyVpcpublicSubnet2Subnet87EBD23B
@@ -423,33 +433,38 @@ Resources:
         Ref: MyVpcF9F0CA6F
     Metadata:
       aws:cdk:path: LoadBalancingStack/ApplicationLoadBalancerSecurityGroup/ApplicationLoadBalancerSecurityGroup/Resource
-  ApplicationLoadBalancer:
+  MyApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       LoadBalancerAttributes:
         - Key: deletion_protection.enabled
           Value: "false"
-      Name: ApplicationLoadBalancer
-      Scheme: internal
+      Name: MyApplicationLoadBalancer
+      Scheme: internet-facing
       SecurityGroups:
         - Fn::GetAtt:
             - ApplicationLoadBalancerSecurityGroupD1E97C66
             - GroupId
       Subnets:
-        - Ref: MyVpcprivateSubnet1Subnet3E5A1110
-        - Ref: MyVpcprivateSubnet2Subnet372894AA
+        - Ref: MyVpcpublicSubnet1Subnet75CA916A
+        - Ref: MyVpcpublicSubnet2Subnet87EBD23B
       Type: application
+    DependsOn:
+      - MyVpcpublicSubnet1DefaultRoute1C88571A
+      - MyVpcpublicSubnet1RouteTableAssociation6D520F26
+      - MyVpcpublicSubnet2DefaultRoute203C8627
+      - MyVpcpublicSubnet2RouteTableAssociation2BD1A73B
     Metadata:
-      aws:cdk:path: LoadBalancingStack/ApplicationLoadBalancer/Resource
+      aws:cdk:path: LoadBalancingStack/MyApplicationLoadBalancer/Resource
   ApplicationListener62E539D0:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       DefaultActions:
         - TargetGroupArn:
-            Ref: ApplicationTargetGroup39BF8D27
+            Ref: MyApplicationTargetGroup494DF93A
           Type: forward
       LoadBalancerArn:
-        Ref: ApplicationLoadBalancer
+        Ref: MyApplicationLoadBalancer
       Port: 80
       Protocol: HTTP
     Metadata:
@@ -485,7 +500,7 @@ Resources:
                   default:
                     statusCode: "200"
                 uri:
-                  Fn::Sub: http://${ApplicationLoadBalancer.DNSName}
+                  Fn::Sub: http://${MyApplicationLoadBalancer.DNSName}
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: http
@@ -628,17 +643,17 @@ Resources:
                 description: Media type of request
       Name: RestApi
     DependsOn:
-      - ApplicationLoadBalancer
+      - MyApplicationLoadBalancer
     Metadata:
       aws:cdk:path: LoadBalancingStack/RestApi/Resource
-  RestApiDeployment180EC5035b8f9da277a689eef43921e3574b03c8:
+  RestApiDeployment180EC503b817b506455f08319586fa66460e72ac:
     Type: AWS::ApiGateway::Deployment
     Properties:
       RestApiId:
         Ref: RestApi0C43BF4B
       Description: Automatically created by the RestApi construct
     DependsOn:
-      - ApplicationLoadBalancer
+      - MyApplicationLoadBalancer
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Metadata:
@@ -649,10 +664,10 @@ Resources:
       RestApiId:
         Ref: RestApi0C43BF4B
       DeploymentId:
-        Ref: RestApiDeployment180EC5035b8f9da277a689eef43921e3574b03c8
+        Ref: RestApiDeployment180EC503b817b506455f08319586fa66460e72ac
       StageName: prod
     DependsOn:
-      - ApplicationLoadBalancer
+      - MyApplicationLoadBalancer
     Metadata:
       aws:cdk:path: LoadBalancingStack/RestApi/DeploymentStage.prod/Resource
   CDKMetadata:

@@ -36,6 +36,7 @@ export class LoadBalancingStack extends Stack {
      vpcName: "MyVpc"
     });
 
+    // Load balancer can talk to ec2 instance (through port 80) even though only port 22 is open in the security group.
     const websiteSecurityGroup = new WebsiteSecurityGroup(this, "MySecurityGroup", { vpc: myVpc })
 
     // https://stackoverflow.com/a/51626887
@@ -47,16 +48,17 @@ export class LoadBalancingStack extends Stack {
     const userData = ec2.UserData.forLinux({})
     userData.addCommands(
       `sudo apt-get update -y`,
-      `sudo apt-get install nginx`,
+      `sudo apt-get install -y nginx`,
       `sudo systemctl enable nginx`,
       `sudo systemctl start nginx`
     )
 
-    const applicationTargetGroup = new elbv2.ApplicationTargetGroup(this, "ApplicationTargetGroup", {
-          
+    const applicationTargetGroup = new elbv2.ApplicationTargetGroup(this, "MyApplicationTargetGroup", {
+        
+      // Need to add a certificate and HTTPS config to nginx to listen to HTTPS
       protocol: elbv2.ApplicationProtocol.HTTP,
       // stickinessCookieName
-      targetGroupName: "ApplicationTargetGroup",
+      targetGroupName: "MyApplicationTargetGroup", // Maybe hard-coding the name is bad, when it has to be recreated instead of just updated?
 
       // Can't use ALB or IP, needs to be instance for the autoscaling group to fill it.
       targetType: TargetType.INSTANCE,
@@ -101,22 +103,23 @@ export class LoadBalancingStack extends Stack {
     // NEED TO USE HTTP INTEGRATION
 
     // Underlying "generic" resource is CfnLoadBalancer for gateways, networks and application load balancing.
-    const lb = new elbv2.ApplicationLoadBalancer(this, "ApplicationLoadBalancer", {
+    const lb = new elbv2.ApplicationLoadBalancer(this, "MyApplicationLoadBalancer", {
       vpc: myVpc,
-      internetFacing: false,
+      // This affects if it adds itself to a private or public subnet
+      internetFacing: true,
       securityGroup: new LoadBalancerSecurityGroup(this, "ApplicationLoadBalancerSecurityGroup", {
         vpc: myVpc
       }).securityGroup,
       // dropInvalidHeaderFields
       // desyncMitigationMode
-      loadBalancerName: "ApplicationLoadBalancer",
+      loadBalancerName: "MyApplicationLoadBalancer", // Maybe hard-coding the name is bad, when it has to be recreated instead of just updated?
 
     })
-    const _ = (lb.node.defaultChild as elbv2.CfnLoadBalancer).overrideLogicalId("ApplicationLoadBalancer")
+    const _ = (lb.node.defaultChild as elbv2.CfnLoadBalancer).overrideLogicalId("MyApplicationLoadBalancer")
 
     const listener = new elbv2.ApplicationListener(this, "ApplicationListener", {
       loadBalancer: lb,
-      // Maybe HTTPS? Depends on what the RestApi sends. HTTPS requires a certificate
+      // HTTPS requires a certificate
       protocol: elbv2.ApplicationProtocol.HTTP,
       defaultTargetGroups: [
         applicationTargetGroup
@@ -129,7 +132,7 @@ export class LoadBalancingStack extends Stack {
     const restApi = new apigw.SpecRestApi(this, "RestApi", {
       //minCompressionSize
       retainDeployments: true,
-      // Refer to ApplicationLoadBalancer Arn and DnsName in the file to redirect traffic.
+      // Refer to MyApplicationLoadBalancer Arn and DnsName in the file to redirect traffic.
       // unless you want to use a network load balancer, all traffic need an IP.
       // Guessing if a private ECS or Fargate cluster is used, it will also have to expose an ip.
       // IMPORTANT THAT IT IS INLINE!

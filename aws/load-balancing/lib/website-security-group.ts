@@ -23,5 +23,7 @@ export class WebsiteSecurityGroup extends Construct {
           });
         
         this.securityGroup.addIngressRule(ec2.Peer.ipv4(personalIp), ec2.Port.tcp(22), "SSH Ingress")
+        this.securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), "HTTP Ingress")
+        this.securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), "HTTPS Ingress")
     }
 }
