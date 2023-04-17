@@ -19,7 +19,6 @@ export class LoadBalancerSecurityGroup extends Construct {
             allowAllIpv6Outbound: true,
             allowAllOutbound: true,
             description: id,
-            securityGroupName: id,
           });
     }
 }

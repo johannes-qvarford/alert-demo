@@ -3,6 +3,7 @@ import { InstanceClass, InstanceSize, InstanceType } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import { WebsiteSecurityGroup } from './website-security-group';
 import { Ubuntu2004Ec2Instance } from './ubuntu-2004-ec2-instance';
+import { ManagedPolicy, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 
 const REGION = 'eu-north-1'
 const AVAILABILITY_ZONE = 'eu-north-1a'
@@ -10,6 +11,16 @@ const AVAILABILITY_ZONE = 'eu-north-1a'
 export class Example1Stack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    // Just an example for how to create an IAM user that cloudformation can assume to create anything on the user's behalf.
+    const user = new cdk.aws_iam.Role(this, "MyRole", {
+      managedPolicies: [
+        ManagedPolicy.fromAwsManagedPolicyName("arn:aws:iam::aws:policy/AdministratorAccess")
+      ],
+      assumedBy: new ServicePrincipal('cloudformation.amazonaws.com'),
+      inlinePolicies: undefined,
+      roleName: "MyRole",
+    })
 
     const myVpc = new cdk.aws_ec2.Vpc(this, "MyVpc", {
       availabilityZones: [AVAILABILITY_ZONE],

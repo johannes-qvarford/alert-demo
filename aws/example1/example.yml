@@ -1,4 +1,23 @@
 Resources:
+  MyRoleF48FFE04:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/arn:aws:iam::aws:policy/AdministratorAccess
+      RoleName: MyRole
+    Metadata:
+      aws:cdk:path: Example1Stack/MyRole/Resource
   MyVpcF9F0CA6F:
     Type: AWS::EC2::VPC
     Properties:
@@ -76,11 +95,11 @@ Resources:
         Ref: MyVpcIGW5C4A4F63
     Metadata:
       aws:cdk:path: Example1Stack/MyVpc/VPCGW
-  MySecurityGroupAC8D442C:
+  MySecurityGroup7983747F:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: My Security Group
-      GroupName: My Security Group
+      GroupDescription: My Security Group 2
+      GroupName: My Security Group 2
       SecurityGroupEgress:
         - CidrIp: 0.0.0.0/0
           Description: Allow all outbound traffic by default
@@ -107,8 +126,8 @@ Resources:
       VpcId:
         Ref: MyVpcF9F0CA6F
     Metadata:
-      aws:cdk:path: Example1Stack/MySecurityGroup/Resource
-  MyInstanceInstanceRole1C4D4747:
+      aws:cdk:path: Example1Stack/MySecurityGroup/MySecurityGroup/Resource
+  MyInstanceInstanceRole911C9173:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -122,8 +141,8 @@ Resources:
         - Key: Name
           Value: MyInstance
     Metadata:
-      aws:cdk:path: Example1Stack/MyInstance/InstanceRole/Resource
-  MyInstanceInstanceRoleDefaultPolicy93DCF05D:
+      aws:cdk:path: Example1Stack/MyInstance/MyInstance/InstanceRole/Resource
+  MyInstanceInstanceRoleDefaultPolicy3222C487:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -135,34 +154,34 @@ Resources:
             Resource:
               Ref: AWS::StackId
         Version: "2012-10-17"
-      PolicyName: MyInstanceInstanceRoleDefaultPolicy93DCF05D
+      PolicyName: MyInstanceInstanceRoleDefaultPolicy3222C487
       Roles:
-        - Ref: MyInstanceInstanceRole1C4D4747
+        - Ref: MyInstanceInstanceRole911C9173
     Metadata:
-      aws:cdk:path: Example1Stack/MyInstance/InstanceRole/DefaultPolicy/Resource
-  MyInstanceInstanceProfile2784C631:
+      aws:cdk:path: Example1Stack/MyInstance/MyInstance/InstanceRole/DefaultPolicy/Resource
+  MyInstanceInstanceProfile312DDA89:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
-        - Ref: MyInstanceInstanceRole1C4D4747
+        - Ref: MyInstanceInstanceRole911C9173
     Metadata:
-      aws:cdk:path: Example1Stack/MyInstance/InstanceProfile
-  MyInstance00EC2Instance:
+      aws:cdk:path: Example1Stack/MyInstance/MyInstance/InstanceProfile
+  MyInstance:
     Type: AWS::EC2::Instance
     Properties:
       AvailabilityZone: eu-north-1a
       IamInstanceProfile:
-        Ref: MyInstanceInstanceProfile2784C631
+        Ref: MyInstanceInstanceProfile312DDA89
       ImageId:
         Fn::FindInMap:
-          - MyInstanceAmiMap2A338A35
+          - MyInstanceAmiMap5F0E2180
           - Ref: AWS::Region
           - ami
       InstanceType: t4g.nano
       KeyName: MyKeyPair
       SecurityGroupIds:
         - Fn::GetAtt:
-            - MySecurityGroupAC8D442C
+            - MySecurityGroup7983747F
             - GroupId
       SubnetId:
         Ref: MyVpcmainSubnet1SubnetE6979C7F
@@ -180,15 +199,9 @@ Resources:
                 mkdir -p /opt/aws/
                 sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
                 sudo ln -s /usr/local/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
-                /usr/local/bin/cfn-init -v --stack Example1Stack --resource MyInstance00EC2Instance --configsets full_install --region 
-              - Ref: AWS::Region
-              - |-
-                
-                /usr/local/bin/cfn-signal -e $? --stack Example1Stack --resource MyInstance00EC2Instance --region 
-              - Ref: AWS::Region
-              - |-
-                
-                # fingerprint: bf5fd9db12e240b0
+                /usr/local/bin/cfn-init -v --stack Example1Stack --resource MyInstance --configsets full_install --region eu-north-1
+                /usr/local/bin/cfn-signal -e $? --stack Example1Stack --resource MyInstance --region eu-north-1
+                # fingerprint: aa36e310063d7cc2
                 (
                   set +e
                   /opt/aws/bin/cfn-init -v --region 
@@ -196,24 +209,24 @@ Resources:
               - " --stack "
               - Ref: AWS::StackName
               - |-2
-                 --resource MyInstance00EC2Instance -c default
+                 --resource MyInstance -c default
                   /opt/aws/bin/cfn-signal -e $? --region 
               - Ref: AWS::Region
               - " --stack "
               - Ref: AWS::StackName
               - |-2
-                 --resource MyInstance00EC2Instance
+                 --resource MyInstance
                   cat /var/log/cfn-init.log >&2
                 )
     DependsOn:
-      - MyInstanceInstanceRoleDefaultPolicy93DCF05D
-      - MyInstanceInstanceRole1C4D4747
+      - MyInstanceInstanceRoleDefaultPolicy3222C487
+      - MyInstanceInstanceRole911C9173
     CreationPolicy:
       ResourceSignal:
         Count: 1
         Timeout: PT5M
     Metadata:
-      aws:cdk:path: Example1Stack/MyInstance/Resource
+      aws:cdk:path: Example1Stack/MyInstance/MyInstance/Resource
       AWS::CloudFormation::Init:
         configSets:
           full_install:
@@ -222,57 +235,35 @@ Resources:
         install_and_enable_cfn_hup:
           files:
             /etc/cfn/cfn-hup.conf:
-              content:
-                Fn::Join:
-                  - "\n"
-                  - - |-
-                      [main]
-                      stack=Example1Stack
-                    - Fn::Join:
-                        - ""
-                        - - region=
-                          - Ref: AWS::Region
+              content: |
+                [main]
+                stack=MyInstance
+                region=eu-north-1
               encoding: plain
               mode: "000400"
               owner: root
               group: root
             /etc/cfn/hooks.d/cfn-auto-reloader.conf:
-              content:
-                Fn::Join:
-                  - "\n"
-                  - - |-
-                      [cfn-auto-reloader-hook]
-                      triggers=post.update
-                      path=Resources.MyInstance00EC2Instance.Metadata.AWS::CloudFormation::Init
-                    - Fn::Join:
-                        - ""
-                        - - "action=/usr/local/bin/cfn-init -v --stack ${id} --resource MyInstance00EC2Instance --configsets InstallAndRun --region "
-                          - Ref: AWS::Region
-                    - runas=root
+              content: |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.MyInstance.Metadata.AWS::CloudFormation::Init
+                action=/usr/local/bin/cfn-init -v --stack Example1Stack --resource MyInstance --configsets full_install --region eu-north-1
+                runas=root
               encoding: plain
               mode: "000400"
               owner: root
               group: root
             /lib/systemd/system/cfn-hup.service:
-              content: "
-
-                \            [Unit]
-
-                \            Description=cfn-hup daemon
-
-                \            [Service]
-
-                \            Type=simple
-
-                \            ExecStart=/usr/local/bin/cfn-hup
-
-                \            Restart=always
-
-                \            [Install]
-
-                \            WantedBy=multi-user.target
-
-                \          "
+              content: |
+                [Unit]
+                Description=cfn-hup daemon
+                [Service]
+                Type=simple
+                ExecStart=/usr/local/bin/cfn-hup
+                Restart=always
+                [Install]
+                WantedBy=multi-user.target
               encoding: plain
               mode: "000400"
               owner: root
@@ -297,12 +288,12 @@ Resources:
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
-      Analytics: v2:deflate64:H4sIAAAAAAAA/1WQzW7CMBCEn6V3xwWqqr2iHBCHSlFSca0cZ2kXkt3IXhehKO9e5wdCTzv+NJqd9Ua/vejVk7n4xFbnpMZSd4UYe1YRfXVgN7o7tFalRzpkqcpCWaMtQkkgA1tUzkHg05Q1LHxhW+/ZohFkupsHsScBF507I3Ax13nN/NpKLPLTAIkqwAaHct05Du244B/YkxdDdo6cdK/QNLrLeWo0zoxj+3HLom7+zPERa+h7lYPn4Ka0D9O2SN9jwgNOmSocrukVcQX65J9/1+96/Rr/8uQRExdIsAGdT/MPxaXktGcBAAA=
+      Analytics: v2:deflate64:H4sIAAAAAAAA/1WQQU/DMAyFfwv3NLAhBNeph4kDUtWiXVGaeuCttavEYaqq/nfSZtBxsv35Se/ZW/38qB/uzMVntjlnLdZ6rMTYs4roY0TT6bHkFlR+pKUW3KId5nHtXsmLIQuF4yO2MCmwWz0eejsvD0WuilBHbRVqApnZ2pUcBN5NnRwSX9nOe7ZoBJn+xMlQwEXl3ghczHC1uU47ifm/OiBRFdjgUIa949AvBv/Ab+7bG6ZJleA5uITfTN8jfS7uNzhnanCONSniBvTJ339vXvTmKf7y5BEzF0iwA12m+gMvPKSCZwEAAA==
     Metadata:
       aws:cdk:path: Example1Stack/CDKMetadata/Default
     Condition: CDKMetadataAvailable
 Mappings:
-  MyInstanceAmiMap2A338A35:
+  MyInstanceAmiMap5F0E2180:
     eu-north-1:
       ami: ami-0bf31a929ffb5e8d7
 Conditions:
